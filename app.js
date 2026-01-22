@@ -452,6 +452,11 @@ async function selectAddress(item) {
 
     // Fetch nearby transactions
     await fetchNearbyTransactions(lat, lon, citycode);
+
+    // Auto-calculate if all fields are filled
+    if (typeof debouncedAutoCalculate === 'function') {
+        debouncedAutoCalculate();
+    }
 }
 
 // ===== Fetch DVF transactions around location =====
@@ -913,6 +918,83 @@ addressInput.addEventListener('input', (e) => {
 document.addEventListener('click', (e) => {
     if (!addressSuggestions.contains(e.target) && e.target !== addressInput) {
         hideSuggestions();
+    }
+});
+
+// ===== Auto-calculate function =====
+function autoCalculate() {
+    // Check if address is selected
+    if (!selectedLocation || currentAvgPriceM2 === 0) {
+        return; // Silently return, don't show alert for auto-calc
+    }
+
+    const propertyPrice = parseFloat(document.getElementById('propertyPrice').value);
+    const surface = parseFloat(document.getElementById('surface').value) || 0;
+    const bouquet = parseFloat(document.getElementById('bouquet').value);
+    const rente = parseFloat(document.getElementById('rente').value);
+    const taxeFonciere = parseFloat(document.getElementById('taxeFonciere').value) || 0;
+    const age = parseInt(document.getElementById('age').value);
+    const gender = document.getElementById('gender').value;
+    const disease = document.getElementById('disease').value;
+
+    // Check if minimum required fields are filled
+    if (!propertyPrice || !bouquet || !rente || !age || !surface || surface <= 0) {
+        return; // Not enough data yet
+    }
+
+    if (age < 50 || age > 110) {
+        return; // Invalid age
+    }
+
+    // Check for second person (couple)
+    const age2Input = document.getElementById('age2');
+    const secondPersonSection = document.getElementById('secondPersonSection');
+    let person2 = null;
+
+    if (secondPersonSection.style.display !== 'none' && age2Input.value) {
+        const age2 = parseInt(age2Input.value);
+        if (age2 >= 50 && age2 <= 110) {
+            person2 = {
+                age: age2,
+                gender: document.getElementById('gender2').value,
+                disease: document.getElementById('disease2').value
+            };
+        }
+    }
+
+    const results = calculateViager({
+        propertyPrice,
+        surface,
+        bouquet,
+        rente,
+        age,
+        gender,
+        disease,
+        avgPriceM2: currentAvgPriceM2,
+        taxeFonciere,
+        person2
+    });
+    displayResults(results);
+}
+
+// Debounced auto-calculate
+let calcDebounceTimer = null;
+function debouncedAutoCalculate() {
+    clearTimeout(calcDebounceTimer);
+    calcDebounceTimer = setTimeout(autoCalculate, 150);
+}
+
+// ===== Add input listeners for dynamic calculation =====
+const formInputs = [
+    'propertyPrice', 'surface', 'bouquet', 'rente', 'taxeFonciere',
+    'age', 'gender', 'disease', 'age2', 'gender2', 'disease2'
+];
+
+formInputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('input', debouncedAutoCalculate);
+        el.addEventListener('change', debouncedAutoCalculate);
     }
 });
 
