@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViagerPro - Calculateur de Rentabilité</title>
+    <meta name="description"
+        content="Calculez la rentabilité d'un investissement en viager avec carte interactive des prix au m².">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="grid-background"></div>
+    <div class="glow-top"></div>
+
+    <div class="app">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <div class="logo-icon">V</div>
+                        <div class="logo-text">Viager<span>Pro</span></div>
+                    </div>
+                    <div class="badge">v1.1 Beta</div>
+                </div>
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="container">
+                <div class="hero-badge">Calculateur intelligent avec carte</div>
+                <h1>Analysez votre <span class="gradient">investissement viager</span></h1>
+                <p class="hero-subtitle">
+                    Visualisez les prix au m² par quartier et estimez votre rentabilité
+                </p>
+            </div>
+        </section>
+
+        <main class="main">
+            <div class="container">
+                <!-- Map Section -->
+                <section class="map-section">
+                    <div class="card map-card">
+                        <div class="card-header">
+                            <div class="card-icon">🗺️</div>
+                            <h2 class="card-title">Carte des prix au m²</h2>
+                        </div>
+                        <div class="map-content">
+                            <div class="address-search">
+                                <div class="form-group">
+                                    <label for="addressInput">Adresse du bien</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="addressInput" placeholder="Entrez l'adresse exacte..."
+                                            autocomplete="off">
+                                        <div id="addressSuggestions" class="suggestions-list"></div>
+                                    </div>
+                                </div>
+                                <div class="address-info" id="addressInfo">
+                                    <div class="info-item">
+                                        <span class="info-label">Commune</span>
+                                        <span class="info-value" id="communeName">—</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Prix moyen</span>
+                                        <span class="info-value highlight" id="avgPrice">—</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Transactions</span>
+                                        <span class="info-value" id="transactionCount">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="map" class="map-container"></div>
+                            <div class="map-legend">
+                                <div class="legend-header">
+                                    <div class="legend-title">Prix au m² - <span id="legendCity">France</span></div>
+                                    <div class="legend-update">Mis à jour : <span id="legendDate">Janvier 2026</span>
+                                    </div>
+                                </div>
+                                <div class="legend-scale" id="legendScale">
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background: #22c55e;"></span>
+                                        <span id="legendLow">&lt; 3 000 €</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background: #84cc16;"></span>
+                                        <span id="legendMedLow">3 000 - 5 000 €</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background: #eab308;"></span>
+                                        <span id="legendMed">5 000 - 7 000 €</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background: #f97316;"></span>
+                                        <span id="legendMedHigh">7 000 - 10 000 €</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background: #ef4444;"></span>
+                                        <span id="legendHigh">&gt; 10 000 €</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Calculator Section -->
+                <div class="calculator-layout">
+                    <form id="viagerForm">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">🏠</div>
+                                <h2 class="card-title">Le bien</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-grid">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="propertyPrice">Prix du marché</label>
+                                            <div class="input-wrapper">
+                                                <input type="number" id="propertyPrice" placeholder="300000" min="0">
+                                                <span class="input-suffix">€</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="surface">Surface</label>
+                                            <div class="input-wrapper">
+                                                <input type="number" id="surface" placeholder="80" min="0">
+                                                <span class="input-suffix">m²</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="divider"></div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="bouquet">Bouquet</label>
+                                            <div class="input-wrapper">
+                                                <input type="number" id="bouquet" placeholder="80000" min="0">
+                                                <span class="input-suffix">€</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="rente">Rente mensuelle</label>
+                                            <div class="input-wrapper">
+                                                <input type="number" id="rente" placeholder="800" min="0">
+                                                <span class="input-suffix">€</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="taxeFonciere">Taxe foncière (annuelle)</label>
+                                            <div class="input-wrapper">
+                                                <input type="number" id="taxeFonciere" placeholder="1500" min="0">
+                                                <span class="input-suffix">€/an</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="margin-top: 16px;">
+                            <div class="card-header">
+                                <div class="card-icon">👤</div>
+                                <h2 class="card-title">Le vendeur</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-grid">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="age">Âge</label>
+                                            <div class="input-wrapper">
+                                                <input type="number" id="age" placeholder="75" min="50" max="110">
+                                                <span class="input-suffix">ans</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="gender">Sexe</label>
+                                            <select id="gender">
+                                                <option value="female">Femme</option>
+                                                <option value="male">Homme</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="disease">Pathologie principale</label>
+                                        <select id="disease">
+                                            <optgroup label="Aucune pathologie">
+                                                <option value="none">Bonne santé</option>
+                                                <option value="minor">Pathologies mineures (hypertension contrôlée...)
+                                                </option>
+                                            </optgroup>
+                                            <optgroup label="Maladies cardiovasculaires">
+                                                <option value="heart_failure">Insuffisance cardiaque</option>
+                                                <option value="coronary">Maladie coronarienne (infarctus)</option>
+                                                <option value="stroke">AVC / Accident vasculaire cérébral</option>
+                                                <option value="arrhythmia">Arythmie cardiaque sévère</option>
+                                            </optgroup>
+                                            <optgroup label="Cancers">
+                                                <option value="cancer_remission">Cancer en rémission (+5 ans)</option>
+                                                <option value="cancer_prostate">Cancer de la prostate</option>
+                                                <option value="cancer_breast">Cancer du sein</option>
+                                                <option value="cancer_colon">Cancer colorectal</option>
+                                                <option value="cancer_lung">Cancer du poumon</option>
+                                                <option value="cancer_pancreas">Cancer du pancréas</option>
+                                            </optgroup>
+                                            <optgroup label="Maladies respiratoires">
+                                                <option value="copd_moderate">BPCO modérée</option>
+                                                <option value="copd_severe">BPCO sévère</option>
+                                                <option value="pulmonary_fibrosis">Fibrose pulmonaire</option>
+                                            </optgroup>
+                                            <optgroup label="Maladies métaboliques">
+                                                <option value="diabetes_controlled">Diabète de type 2 contrôlé</option>
+                                                <option value="diabetes_complications">Diabète avec complications
+                                                </option>
+                                                <option value="renal_failure">Insuffisance rénale chronique</option>
+                                                <option value="cirrhosis">Cirrhose hépatique</option>
+                                            </optgroup>
+                                            <optgroup label="Maladies neurologiques">
+                                                <option value="alzheimer_early">Alzheimer stade précoce</option>
+                                                <option value="alzheimer_advanced">Alzheimer stade avancé</option>
+                                                <option value="parkinson">Maladie de Parkinson</option>
+                                                <option value="als">SLA (Sclérose latérale amyotrophique)</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                    <div class="disease-info" id="diseaseInfo" style="display: none;">
+                                        <div class="disease-impact"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Second person (optional) -->
+                        <div class="card" style="margin-top: 16px;">
+                            <div class="card-header" style="cursor: pointer;" onclick="toggleSecondPerson()">
+                                <div class="card-icon">👥</div>
+                                <h2 class="card-title">2ème vendeur (couple)</h2>
+                                <div class="toggle-indicator" id="toggleIndicator">+ Ajouter</div>
+                            </div>
+                            <div class="card-body" id="secondPersonSection" style="display: none;">
+                                <div class="couple-info">
+                                    <span class="info-icon">ℹ️</span>
+                                    <span>Viager sur 2 têtes : le viager se poursuit jusqu'au décès du dernier
+                                        survivant. Les personnes en couple bénéficient d'un bonus d'espérance de vie de
+                                        +10% (études INSEE/INED).</span>
+                                </div>
+                                <div class="form-grid">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="age2">Âge</label>
+                                            <div class="input-wrapper">
+                                                <input type="number" id="age2" placeholder="72" min="50" max="110">
+                                                <span class="input-suffix">ans</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="gender2">Sexe</label>
+                                            <select id="gender2">
+                                                <option value="male">Homme</option>
+                                                <option value="female">Femme</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="disease2">Pathologie principale</label>
+                                        <select id="disease2">
+                                            <optgroup label="Aucune pathologie">
+                                                <option value="none">Bonne santé</option>
+                                                <option value="minor">Pathologies mineures (hypertension contrôlée...)
+                                                </option>
+                                            </optgroup>
+                                            <optgroup label="Maladies cardiovasculaires">
+                                                <option value="heart_failure">Insuffisance cardiaque</option>
+                                                <option value="coronary">Maladie coronarienne (infarctus)</option>
+                                                <option value="stroke">AVC / Accident vasculaire cérébral</option>
+                                                <option value="arrhythmia">Arythmie cardiaque sévère</option>
+                                            </optgroup>
+                                            <optgroup label="Cancers">
+                                                <option value="cancer_remission">Cancer en rémission (+5 ans)</option>
+                                                <option value="cancer_prostate">Cancer de la prostate</option>
+                                                <option value="cancer_breast">Cancer du sein</option>
+                                                <option value="cancer_colon">Cancer colorectal</option>
+                                                <option value="cancer_lung">Cancer du poumon</option>
+                                                <option value="cancer_pancreas">Cancer du pancréas</option>
+                                            </optgroup>
+                                            <optgroup label="Maladies respiratoires">
+                                                <option value="copd_moderate">BPCO modérée</option>
+                                                <option value="copd_severe">BPCO sévère</option>
+                                                <option value="pulmonary_fibrosis">Fibrose pulmonaire</option>
+                                            </optgroup>
+                                            <optgroup label="Maladies métaboliques">
+                                                <option value="diabetes_controlled">Diabète de type 2 contrôlé</option>
+                                                <option value="diabetes_complications">Diabète avec complications
+                                                </option>
+                                                <option value="renal_failure">Insuffisance rénale chronique</option>
+                                                <option value="cirrhosis">Cirrhose hépatique</option>
+                                            </optgroup>
+                                            <optgroup label="Maladies neurologiques">
+                                                <option value="alzheimer_early">Alzheimer stade précoce</option>
+                                                <option value="alzheimer_advanced">Alzheimer stade avancé</option>
+                                                <option value="parkinson">Maladie de Parkinson</option>
+                                                <option value="als">SLA (Sclérose latérale amyotrophique)</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn" style="margin-top: 16px; width: 100%;">
+                            Calculer la rentabilité
+                        </button>
+                    </form>
+
+                    <aside class="results-panel" id="resultsPanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">📊</div>
+                                <h2 class="card-title">Analyse complète</h2>
+                            </div>
+                            <div class="card-body" id="resultsBody" style="display: none;">
+                                <div class="results-section">
+                                    <div class="section-title">Valeur du bien</div>
+                                    <div class="results-stack">
+                                        <div class="result-row">
+                                            <span class="result-label">Valeur estimée (m² × prix)</span>
+                                            <span class="result-value" id="estimatedValue">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Prix du marché saisi</span>
+                                            <span class="result-value" id="marketPrice">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Prix au m² réel</span>
+                                            <span class="result-value" id="realPriceM2">—</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="results-section">
+                                    <div class="section-title">Durée & Espérance</div>
+                                    <div class="results-stack">
+                                        <div class="result-row">
+                                            <span class="result-label">Pathologie</span>
+                                            <span class="result-value" id="diseaseDisplay">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Espérance base (sans maladie)</span>
+                                            <span class="result-value" id="baseExpectancy">—</span>
+                                        </div>
+                                        <div class="result-row result-disease">
+                                            <span class="result-label">Impact maladie</span>
+                                            <span class="result-value" id="diseaseImpact">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Espérance ajustée</span>
+                                            <span class="result-value" id="lifeExpectancy">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Durée viager estimée</span>
+                                            <span class="result-value" id="duration">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Coefficient DUH</span>
+                                            <span class="result-value" id="duhCoef">—</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="results-section">
+                                    <div class="section-title">Détail des coûts</div>
+                                    <div class="results-stack">
+                                        <div class="result-row">
+                                            <span class="result-label">Bouquet initial</span>
+                                            <span class="result-value" id="bouquetDisplay">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Total rentes estimées</span>
+                                            <span class="result-value" id="totalRentes">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Total taxes foncières</span>
+                                            <span class="result-value" id="totalTaxesFoncieres">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Frais de notaire (~8%)</span>
+                                            <span class="result-value" id="notaryFees">—</span>
+                                        </div>
+                                        <div class="result-row result-total">
+                                            <span class="result-label">Coût total d'acquisition</span>
+                                            <span class="result-value" id="totalCost">—</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="results-section">
+                                    <div class="section-title">Analyse viager</div>
+                                    <div class="results-stack">
+                                        <div class="result-row">
+                                            <span class="result-label">Valeur DUH (occupation)</span>
+                                            <span class="result-value" id="duhValue">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Valeur nue-propriété</span>
+                                            <span class="result-value" id="bareOwnership">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Écart bouquet/nue-prop.</span>
+                                            <span class="result-value" id="bouquetDiff">—</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="results-section">
+                                    <div class="section-title">Rentabilité</div>
+                                    <div class="results-stack">
+                                        <div class="result-row result-highlight">
+                                            <span class="result-label">Économie vs achat direct</span>
+                                            <span class="result-value" id="savings">—</span>
+                                        </div>
+                                        <div class="result-row result-main">
+                                            <span class="result-label">Rentabilité estimée</span>
+                                            <span class="result-value" id="profitability">—</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="results-section">
+                                    <div class="section-title"
+                                        style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span>Seuil de non-rentabilité</span>
+                                        <button type="button" class="detail-btn" id="breakEvenBtn"
+                                            onclick="toggleBreakEvenDetails()">
+                                            📉 Voir détails
+                                        </button>
+                                    </div>
+                                    <div class="results-stack">
+                                        <div class="result-row result-warning">
+                                            <span class="result-label">Durée avant perte</span>
+                                            <span class="result-value" id="breakEvenDuration">—</span>
+                                        </div>
+                                        <div class="result-row">
+                                            <span class="result-label">Date estimée de non-rentabilité</span>
+                                            <span class="result-value" id="breakEvenDate">—</span>
+                                        </div>
+                                    </div>
+                                    <div class="break-even-details" id="breakEvenDetails" style="display: none;">
+                                        <div class="detail-card">
+                                            <div class="detail-title">📊 Analyse détaillée du seuil</div>
+                                            <div class="detail-row">
+                                                <span>Valeur du bien</span>
+                                                <span id="bePropertyValue">—</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span>Bouquet initial</span>
+                                                <span id="beBouquet">—</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span>Rente mensuelle</span>
+                                                <span id="beRente">—</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span>Taxe foncière annuelle</span>
+                                                <span id="beTaxe">—</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span>Frais de notaire</span>
+                                                <span id="beNotary">—</span>
+                                            </div>
+                                            <div class="detail-divider"></div>
+                                            <div class="detail-row highlight">
+                                                <span>Coût mensuel total</span>
+                                                <span id="beMonthlyCost">—</span>
+                                            </div>
+                                            <div class="detail-row highlight">
+                                                <span>Marge restante après bouquet</span>
+                                                <span id="beMargin">—</span>
+                                            </div>
+                                            <div class="detail-row highlight">
+                                                <span>Mois avant dépassement</span>
+                                                <span id="beMonths">—</span>
+                                            </div>
+                                            <div class="detail-explanation">
+                                                <strong>💡 Explication :</strong> Le viager n'est plus rentable lorsque
+                                                la somme du bouquet, des rentes cumulées, des taxes foncières et des
+                                                frais de notaire dépasse la valeur du bien.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="disclaimer">
+                                    <span class="disclaimer-icon">⚠️</span>
+                                    <span>Estimations basées sur les tables de mortalité INSEE et un coefficient DUH
+                                        standard. La durée réelle peut varier significativement.</span>
+                                </div>
+                            </div>
+                            <div class="empty-state" id="emptyState">
+                                <div class="empty-state-icon">📊</div>
+                                <p class="empty-state-text">Remplissez le formulaire pour l'analyse</p>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <p>Données DVF — data.gouv.fr • Carte OpenStreetMap</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
